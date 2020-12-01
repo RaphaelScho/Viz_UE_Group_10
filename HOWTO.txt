@@ -1,0 +1,9 @@
+1. Install node.js
+2. check if node and npm command works: "node -v" in cmd and "npm -v". This will show you the version
+3. install live server: "npm install -g live-server"
+4. Go to project's root dir (where index.html lives)
+5. run "live-server"
+6. open index.html on local server
+
+
+https://www.npmjs.com/package/live-server

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<head>
+	<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+
+
+<div id = "plot_area">
+
+</div>
+
+<script>
+d3.select("body").append("span")
+    .text("Hello, world!");
+
+
+const width = 960;
+const height = 500;
+const margin = 40;
+const padding = 5;
+const adj = 30;
+
+const svg = d3.select("div#plot_area").append("svg")
+    .attr("preserveAspectRatio", "xMinYMin meet")
+    .attr("viewBox", "-"
+          + adj + " -"
+          + adj + " "
+          + (width + adj *3) + " "
+          + (height + adj*3))
+    .style("padding", padding)
+    .style("margin", margin)
+    .classed("svg-content", true);
+
+const san_pablo = d3.csv("/data/SanPablo_processed.csv");
+
+const suisun = d3.csv("/data/SuisunBay_processed.csv");
+
+const south = d3.csv("/data/SouthBay_processed.csv");
+
+const timeConv = d3.timeParse("%Y-%m");
+
+let prepare_data = function(data) {
+	/*
+	------PREPARING DATA--------
+	*/
+
+	const slices = data.columns.slice(1).map(function(col_name) { // slice(1) is for ignoring the time col
+		return {
+			id: col_name,
+			values: data.map(function(row) {
+				return {
+					time: timeConv(row.time),
+					measurement: +row[col_name]
+				}
+			})
+		}
+	});
+	console.log(slices);
+	
+	
+	/* 
+	-----------AXES-----------
+	*/
+	const xScale = d3.scaleTime().range([0,width]);
+	const yScale = d3.scaleLinear().rangeRound([height, 0]);
+	xScale.domain(d3.extent(data, function(d){ //d3.extent() returns a minimum and maximum value of an array
+		const smth = timeConv(d.time);
+		console.log(smth);
+		console.log(smth.length);
+		return timeConv(d.time)
+	}));
+	yScale.domain([(0), d3.max(slices, function(slice) {
+			console.log(slice);
+			return d3.max(slice.values, function(entry) {
+				console.log(entry);
+				return entry.measurement + 4; // add 4 to maximum of maximums of slices, aesthetic reasons
+			
+			});
+			
+		})
+		]);
+	const yAxis = d3.axisLeft()
+		//.ticks((slices[0].values).length)
+		.scale(yScale);
+	const xAxis = d3.axisBottom()
+		.ticks(d3.timeYear.every(1))
+		.tickFormat(d3.timeFormat('%b %Y'))
+		.scale(xScale);
+	
+	svg.append("g")
+    .attr("class", "axis")
+    .attr("transform", "translate(0," + height + ")")
+    .call(xAxis);
+
+	svg.append("g")
+    .attr("class", "axis")
+    .call(yAxis);
+	
+	/*
+	--------MAKING A LINE CHART----------
+	*/
+	
+	
+	// LINE
+	/*
+		Lines are essentially d3.paths() that connect a bunch of (x, y) coordinates on a 2D plane.
+		To construct a line you need to tell it where to find its x and y coordinates
+		and then append that to the svg.
+	*/
+	const line = d3.line()
+		.x(function(d) {
+			return xScale(d.time);
+		})
+		.y(function(d) {
+			return yScale(d.measurement);
+		});
+		
+	const lines = svg.selectAll("lines")
+		.data(slices)
+		.enter()
+		.append("g");
+
+	lines.append("path")
+		.attr("d", function(d) { return line(d.values); });
+
+}
+
+let prepare_axes = function(data) {
+	
+	
+}
+
+//san_pablo.then(prepare_data).then(prepare_axes);
+//suisun.then(prepare_data).then(prepare_axes);
+south.then(prepare_data);//.then(prepare_axes);
+
+/*
+------------ OLDER STUFF ------------
+// gets maximum & minimum of every row.
+let plot_data = function(data) {
+
+	// Get minima and maxima for domain
+	let maxDict = {
+		temp: 0,
+		sal: 0,
+		oxy_el: 0,
+		oxy_sat: 0
+	};
+	let minDict = {
+		temp: 30,
+		sal: 80,
+		oxy_el: 80,
+		oxy_sat: 80
+	}
+	data.forEach(row => {
+		for (const [key, value] of Object.entries(maxDict)) {
+			if (row[key] > value) {
+				maxDict[key] = row[key];
+			}
+		}
+		for (const [key, value] of Object.entries(minDict)) {
+			if (row[key] < value) {
+				minDict[key] = row[key];
+			}
+		}
+	});
+	
+	console.log(maxDict);
+	console.log(minDict);
+
+}
+*/
+
+
+
+
+
+
+
+</script>
