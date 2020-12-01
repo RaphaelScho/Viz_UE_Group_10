@@ -1,0 +1,12 @@
+Pretty layout
+
+Interaction with the checkboxes
+
+Interactive plot tutorial ds3 v5:
+	https://towardsdatascience.com/an-introduction-to-making-dynamic-and-interactive-plots-with-d3-a9e859413c5a
+
+Slider for time period: good one would be the range slider seen on this site (d3):
+	https://bl.ocks.org/johnwalley/e1d256b81e51da68f7feb632a53c3518
+
+Different legend (if we want):
+	https://towardsdatascience.com/an-introduction-to-making-dynamic-and-interactive-plots-with-d3-a9e859413c5a

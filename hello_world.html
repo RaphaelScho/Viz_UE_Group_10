@@ -7,6 +7,28 @@
 <body>
 <script src="https://d3js.org/d3.v5.min.js"></script>
 
+<div id = "plotting_settings">
+	<div id = "bay_settings" class = "settings">
+		<input type="checkbox" name="south" value="South Bay">
+		<label for="south">South Bay</label><br>
+		<input type="checkbox" name="suisun" value="Suisun Bay">
+		<label for="suisun">Suisun Bay</label><br>
+		<input type="checkbox" name="san_pablo" value="San Pablo Bay">
+		<label for="san_pablo">San Pablo Bay</label><br>
+	</div>
+	<div id = "time_settings" class = "settings">
+	</div>
+	<div id = "information_settings" class = "settings">
+		<input type="checkbox" name="temperature" value="Temperature">
+		<label for="temperature">Temperature</label><br>
+		<input type="checkbox" name="oxy_sat" value="Oxygen Saturation (%)">
+		<label for="oxy_sat">Oxygen Saturation (%)</label><br>
+		<input type="checkbox" name="oxy_ele" value="Oxygen Electrode Output">
+		<label for="oxy_ele">Oxygen Electrode Output</label><br>
+		<input type="checkbox" name="salinity" value="Salinity">
+		<label for="salinity">Salinity</label><br>
+	</div>
+</div>
 
 <div id = "plot_area">
 
@@ -17,11 +39,12 @@ d3.select("body").append("span")
     .text("Hello, world!");
 
 
-const width = 960;
+const width = 1000;
 const height = 500;
 const margin = 40;
 const padding = 5;
-const adj = 30;
+
+const adj = 100; // play with this to shrink everything at once
 
 const svg = d3.select("div#plot_area").append("svg")
     .attr("preserveAspectRatio", "xMinYMin meet")
@@ -42,7 +65,7 @@ const south = d3.csv("/data/SouthBay_processed.csv");
 
 const timeConv = d3.timeParse("%Y-%m");
 
-let prepare_data = function(data) {
+let plot_data = function(data) {
 	/*
 	------PREPARING DATA--------
 	*/
@@ -91,14 +114,20 @@ let prepare_data = function(data) {
 		.scale(xScale);
 	
 	svg.append("g")
-    .attr("class", "axis")
-    .attr("transform", "translate(0," + height + ")")
-    .call(xAxis);
+		.attr("class", "axis")
+		.attr("transform", "translate(0," + height + ")")
+		.call(xAxis);
 
 	svg.append("g")
-    .attr("class", "axis")
-    .call(yAxis);
-	
+		.attr("class", "axis")
+		.call(yAxis)
+		// from here is the y Axis label
+		.append("text")
+		.attr("transform", "rotate(-90)")
+		.attr("dy", ".75em")
+		.attr("y", 6)
+		.style("text-anchor", "end")
+		.text("YLABEL");
 	/*
 	--------MAKING A LINE CHART----------
 	*/
@@ -118,24 +147,36 @@ let prepare_data = function(data) {
 			return yScale(d.measurement);
 		});
 		
+	let id = 0;
+	const ids = function() {
+		return "line-"+id++; // generate numbered ids
+	}
 	const lines = svg.selectAll("lines")
 		.data(slices)
 		.enter()
 		.append("g");
 
 	lines.append("path")
+		.attr("class", ids)
 		.attr("d", function(d) { return line(d.values); });
+		
+	lines.append("text")
+		.attr("class","series_label")
+		.datum(function(d) {
+			return {
+				id: d.id,
+				value: d.values[d.values.length - 1]}; })
+		.attr("transform", function(d) {
+				return "translate(" + (xScale(d.value.time) + 10)  
+				+ "," + (yScale(d.value.measurement) + 5 ) + ")";})
+		.attr("x", 5)
+		.text(function(d) { return d.id; });
 
-}
-
-let prepare_axes = function(data) {
-	
-	
 }
 
 //san_pablo.then(prepare_data).then(prepare_axes);
 //suisun.then(prepare_data).then(prepare_axes);
-south.then(prepare_data);//.then(prepare_axes);
+south.then(plot_data);//.then(prepare_axes);
 
 /*
 ------------ OLDER STUFF ------------
