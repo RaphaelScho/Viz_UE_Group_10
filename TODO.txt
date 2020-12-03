@@ -10,3 +10,6 @@ Slider for time period: good one would be the range slider seen on this site (d3
 
 Different legend (if we want):
 	https://towardsdatascience.com/an-introduction-to-making-dynamic-and-interactive-plots-with-d3-a9e859413c5a
+
+Groupby, rollup (aggregation functions):
+	http://learnjsdata.com/group_data.html

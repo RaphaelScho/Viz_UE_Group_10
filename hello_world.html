@@ -1,51 +1,69 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <head>
+	<!-- style.css link -->
 	<link rel="stylesheet" href="style.css">
 </head>
 
 <body>
+<!-- d3 version 5 -->
 <script src="https://d3js.org/d3.v5.min.js"></script>
 
+<!-- TODO: in the css make a somewhat nicer style than the default. -->
 <div id = "plotting_settings">
 	<div id = "bay_settings" class = "settings">
-		<input type="checkbox" name="south" value="South Bay">
-		<label for="south">South Bay</label><br>
-		<input type="checkbox" name="suisun" value="Suisun Bay">
-		<label for="suisun">Suisun Bay</label><br>
-		<input type="checkbox" name="san_pablo" value="San Pablo Bay">
-		<label for="san_pablo">San Pablo Bay</label><br>
+		<label><input type="checkbox" onclick = 'handleClick(this);' name="south">South Bay</label></br>		
+		<label><input type="checkbox" onclick = 'handleClick(this);' name="suisun">Suisun Bay</label></br>	
+		<label><input type="checkbox" onclick = 'handleClick(this);' name="san_pablo">San Pablo Bay</label></br>	
 	</div>
 	<div id = "time_settings" class = "settings">
+	<!-- TODO: add a time slider here. Look into TODO.txt for examples. -->
 	</div>
 	<div id = "information_settings" class = "settings">
-		<input type="checkbox" name="temperature" value="Temperature">
-		<label for="temperature">Temperature</label><br>
-		<input type="checkbox" name="oxy_sat" value="Oxygen Saturation (%)">
-		<label for="oxy_sat">Oxygen Saturation (%)</label><br>
-		<input type="checkbox" name="oxy_ele" value="Oxygen Electrode Output">
-		<label for="oxy_ele">Oxygen Electrode Output</label><br>
-		<input type="checkbox" name="salinity" value="Salinity">
-		<label for="salinity">Salinity</label><br>
+		<label><input type="checkbox" onclick = 'handleClick(this);' name="temperature">Temperature</label></br>
+		<label><input type="checkbox" onclick = 'handleClick(this);' name="oxy_sat">Oxygen Saturation (%)</label></br>
+		<label><input type="checkbox" onclick = 'handleClick(this);' name="oxy_ele">Oxygen Electrode Output</label></br>
+		<label><input type="checkbox" onclick = 'handleClick(this);' name="salinity">Salinity</label></br>
 	</div>
 </div>
 
 <div id = "plot_area">
-
+<!-- PLOT AREA -->
 </div>
 
 <script>
+
+/* TUTORIAL: The most important javascript command is:
+	console.log(variable)!!!!!!!!!!!!!!!!!!!!!!!!
+	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!	*/
+	
+/* TUTORIAL: Hello world with d3. */
 d3.select("body").append("span")
     .text("Hello, world!");
 
-
+/* TUTORIAL: Adjust these parameters to relocate the plot, make it
+	wider, ..., ESPECIALLY look at adj! */
 const width = 1000;
 const height = 500;
 const margin = 40;
 const padding = 5;
-
 const adj = 100; // play with this to shrink everything at once
 
+const timeConv = d3.timeParse("%Y-%m");
+
+var config = {
+	plot_south: false,
+	plot_suisun: false,
+	plot_san_pablo: true,
+	plot_temperature: true,
+	plot_salinity: false,
+	plot_oxySat: false,
+	plot_oxyEle: false,
+	date_min: timeConv('2000-01'),
+	date_max: timeConv('2010-01')
+}
+
+/* TUTORIAL: This represents the plot. It acts on the html div that has id (#) plot_area */
 const svg = d3.select("div#plot_area").append("svg")
     .attr("preserveAspectRatio", "xMinYMin meet")
     .attr("viewBox", "-"
@@ -57,20 +75,68 @@ const svg = d3.select("div#plot_area").append("svg")
     .style("margin", margin)
     .classed("svg-content", true);
 
-const san_pablo = d3.csv("/data/SanPablo_processed.csv");
+const data = d3.csv("/data/SFBay_processed.csv");
 
-const suisun = d3.csv("/data/SuisunBay_processed.csv");
-
-const south = d3.csv("/data/SouthBay_processed.csv");
-
-const timeConv = d3.timeParse("%Y-%m");
-
+/* TUTORIAL: This is the function that prepares data, prepares axes, and plots.
+	Why all together? I couldn't separate it, since d3 works somewhat weirdly.
+	It runs asynchronously and works with promises, so I suggest you do everything in this
+	function. */
 let plot_data = function(data) {
+
+	/* TUTORIAL: Figure out how to "unplot" data. 
+	(click on the checkboxes twice, the data is plotted again and again
+	and never is the figure cleared.)*/
 	/*
+	
 	------PREPARING DATA--------
 	*/
+	/* TUTORIAL: Look at console. Inspect the objects.
+		This code makes groups from the areas.
+		*/
+	const grouped = d3.nest()
+		.key(function(d) { return d.Area; })
+		.entries(data);
+	
+	console.log(data);
 
-	const slices = data.columns.slice(1).map(function(col_name) { // slice(1) is for ignoring the time col
+	grouped.forEach(function(g) {
+		g.values.columns = data.columns;
+	});
+	
+	/* TUTORIAL: Look at console. Inspect the objects.
+		This code assigns the groups to the bays.
+		*/
+	san_pablo = grouped[0].values;
+	south = grouped[1].values;
+	suisun = grouped[2].values;
+	console.log(san_pablo);
+
+	/* TUTORIAL: Look at console. Inspect the objects.
+		This code gathers from the rows of the data, grouped by area, all the relevant columns.
+		Hint: look at resulting object. also look at the same code for the whole data.
+		*/
+	const san_pablo_slices = san_pablo.columns.slice(2).map(function(col_name) { // slice(1) is for ignoring the time col
+		return {
+			id: col_name,
+			values: san_pablo.map(function(row) {
+				return {
+					time: timeConv(row.time),
+					measurement: +row[col_name]
+				}
+			})
+		}
+	});
+	console.log(san_pablo_slices);
+	
+	/* TUTORIAL: Look at console. Inspect the objects.
+		This is the same code, but not grouped by area.
+		Using this object you can plot all data at once.
+		This was used before the data was grouped. You don't need it
+		anymore, probably, but it might be useful.
+		This function is still a little bit magic for me but,
+		do console.log() to understand the output.
+		*/
+	const slices = data.columns.slice(2).map(function(col_name) { // slice(1) is for ignoring the time col
 		return {
 			id: col_name,
 			values: data.map(function(row) {
@@ -87,24 +153,47 @@ let plot_data = function(data) {
 	/* 
 	-----------AXES-----------
 	*/
+	
 	const xScale = d3.scaleTime().range([0,width]);
 	const yScale = d3.scaleLinear().rangeRound([height, 0]);
+	
+	/* TUTORIAL: Look at console. Inspect the objects.
+		X Axis (time) always takes the same timeframe at the moment. This should be adjustable. See
+		TODO.txt for a d3 example of nice range sliders. This slider should then make its influence here,
+		by calling the startDate and endDate of the config.
+		*/
+	xMin = config.date_min;
+	xMax = config.date_max;
 	xScale.domain(d3.extent(data, function(d){ //d3.extent() returns a minimum and maximum value of an array
 		const smth = timeConv(d.time);
-		console.log(smth);
-		console.log(smth.length);
 		return timeConv(d.time)
 	}));
+	
+	/* TUTORIAL: Look at console. Inspect the objects.
+	Access the boolean values of the config object, if temperature f.ex.
+	is selected, but the others are not, the y Axis maximum should not be 1000, 
+	but the maximum of only the temperature column.
+	*/
+	if (config.plot_temperature) {
+		// yscale should take temperature into account
+	}
+	if (config.plot_salinity) {
+		// yscale should take salinity into account
+	}
+	if (config.plot_oxySat) {
+		// yscale should take oxySat into account
+	}
+	if (config.plot_oxyEle) {
+		// yscale should take oxyEle into account
+	}
 	yScale.domain([(0), d3.max(slices, function(slice) {
-			console.log(slice);
 			return d3.max(slice.values, function(entry) {
-				console.log(entry);
 				return entry.measurement + 4; // add 4 to maximum of maximums of slices, aesthetic reasons
 			
 			});
 			
 		})
-		]);
+	]);
 	const yAxis = d3.axisLeft()
 		//.ticks((slices[0].values).length)
 		.scale(yScale);
@@ -128,6 +217,7 @@ let plot_data = function(data) {
 		.attr("y", 6)
 		.style("text-anchor", "end")
 		.text("YLABEL");
+		
 	/*
 	--------MAKING A LINE CHART----------
 	*/
@@ -139,6 +229,20 @@ let plot_data = function(data) {
 		To construct a line you need to tell it where to find its x and y coordinates
 		and then append that to the svg.
 	*/
+	
+	/* TUTORIAL: Look at console. Inspect the objects.
+		See which bays the user wants to plot. Only plot the columns
+		the user wants to see from those bays.
+	*/
+	if (config.plot_south) {
+		
+	}
+	if (config.plot_suisun) {
+		
+	}
+	if (config.plot_san_pablo) {
+		
+	}
 	const line = d3.line()
 		.x(function(d) {
 			return xScale(d.time);
@@ -174,51 +278,55 @@ let plot_data = function(data) {
 
 }
 
-//san_pablo.then(prepare_data).then(prepare_axes);
-//suisun.then(prepare_data).then(prepare_axes);
-south.then(plot_data);//.then(prepare_axes);
-
-/*
------------- OLDER STUFF ------------
-// gets maximum & minimum of every row.
-let plot_data = function(data) {
-
-	// Get minima and maxima for domain
-	let maxDict = {
-		temp: 0,
-		sal: 0,
-		oxy_el: 0,
-		oxy_sat: 0
-	};
-	let minDict = {
-		temp: 30,
-		sal: 80,
-		oxy_el: 80,
-		oxy_sat: 80
-	}
-	data.forEach(row => {
-		for (const [key, value] of Object.entries(maxDict)) {
-			if (row[key] > value) {
-				maxDict[key] = row[key];
+/* TUTORIAL: Here clicks are handled. You can register the callback in the html (see onclick).
+	The html attributes can be accessed by "."
+	For now, everytime the user changes the configuration, the data is plotted anew. */
+let handleClick = function(cb) {
+	switch(cb.name) {
+		case "south":
+			if (cb.checked) {
+				
+				config.plot_south = true;
+				data.then(plot_data);
+			} else {
+				config.plot_south = false;
+				data.then(plot_data);
 			}
-		}
-		for (const [key, value] of Object.entries(minDict)) {
-			if (row[key] < value) {
-				minDict[key] = row[key];
+			break;
+		case "suisun":
+			if (cb.checked) {
+				config.plot_suisun = true;
+				data.then(plot_data);
+			} else {
+				config.plot_suisun = false;
+				data.then(plot_data);
 			}
-		}
-	});
+			break;
+		case "san_pablo":
+			if (cb.checked) {
+				config.plot_san_pablo = true;
+				data.then(plot_data);
+			} else {
+				config.plot_san_pablo = false;
+				data.then(plot_data);
+			}
+			break;
+		case "temperature":
 	
-	console.log(maxDict);
-	console.log(minDict);
-
+			break;
+		case "oxy_sat":
+	
+			break;
+		case "oxy_ele":
+	
+			break;
+		case "salinity":
+	
+			break;
+		default:
+			console.warn("No specific callback found");
+			break;
+	}
 }
-*/
-
-
-
-
-
-
 
 </script>
