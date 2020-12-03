@@ -160,10 +160,10 @@ let plot_data = function(data) {
 	/* TUTORIAL: Look at console. Inspect the objects.
 		X Axis (time) always takes the same timeframe at the moment. This should be adjustable. See
 		TODO.txt for a d3 example of nice range sliders. This slider should then make its influence here,
-		by calling the startDate and endDate of the config.
+		by calling the startDate and endDate of the config in the onclick function seen farther down.
 		*/
-	xMin = config.date_min;
-	xMax = config.date_max;
+	xMin = config.date_min; // use this
+	xMax = config.date_max; // use this
 	xScale.domain(d3.extent(data, function(d){ //d3.extent() returns a minimum and maximum value of an array
 		const smth = timeConv(d.time);
 		return timeConv(d.time)
@@ -186,6 +186,8 @@ let plot_data = function(data) {
 	if (config.plot_oxyEle) {
 		// yscale should take oxyEle into account
 	}
+	// this basically takes the maximum from !all! 4 columns Temperature, oxySat, oxyEle, Salinity.
+	// it should only take max of activated columns !and! activated datasets.
 	yScale.domain([(0), d3.max(slices, function(slice) {
 			return d3.max(slice.values, function(entry) {
 				return entry.measurement + 4; // add 4 to maximum of maximums of slices, aesthetic reasons
@@ -233,6 +235,7 @@ let plot_data = function(data) {
 	/* TUTORIAL: Look at console. Inspect the objects.
 		See which bays the user wants to plot. Only plot the columns
 		the user wants to see from those bays.
+		All these things are a little bit magic for me so i cant explain.
 	*/
 	if (config.plot_south) {
 		
