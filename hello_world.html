@@ -75,7 +75,8 @@ const svg = d3.select("div#plot_area").append("svg")
     .style("margin", margin)
     .classed("svg-content", true);
 
-const data = d3.csv("/data/SFBay_processed.csv");
+/* loading data */
+const data = d3.csv("/data/SFBay_processed_scaled.csv");
 
 /* TUTORIAL: This is the function that prepares data, prepares axes, and plots.
 	Why all together? I couldn't separate it, since d3 works somewhat weirdly.
@@ -190,7 +191,7 @@ let plot_data = function(data) {
 	// it should only take max of activated columns !and! activated datasets.
 	yScale.domain([(0), d3.max(slices, function(slice) {
 			return d3.max(slice.values, function(entry) {
-				return entry.measurement + 4; // add 4 to maximum of maximums of slices, aesthetic reasons
+				return entry.measurement + 0.3; // add 30% to maximum of maximums of slices, aesthetic reasons
 			
 			});
 			
@@ -219,6 +220,41 @@ let plot_data = function(data) {
 		.attr("y", 6)
 		.style("text-anchor", "end")
 		.text("YLABEL");
+
+	/* legend */  /* doesn't work yet */
+	svg.append("path")
+		.datum([[70, 40], [100, 1.2]])
+		.attr('stroke', 'red')
+		.attr('stroke-width', 2)
+		.attr('d', d3.line()
+			.x((d) => xScale(d[0]))
+			.y((d) => yScale(d[1])));
+
+	svg.append("path")
+		.datum([[750, 50], [120, 1.1]])
+		.attr('stroke', 'green')
+		.attr('stroke-width', 2)
+		.attr('d', d3.line()
+			.x((d) => xScale(d[0]))
+			.y((d) => yScale(d[1]))); 
+
+	svg.append('text')
+		.attr('x', xScale(100))
+		.attr('y', yScale(1.2))
+		.attr('alignment-baseline', 'central')
+		.style('font-family', 'sans-serif')
+		.style('font-size', '16px')
+		.text('oxy_sat');
+
+	svg.append('text')
+		.attr('x', xScale(120))
+		.attr('y', yScale(1.1))
+		.attr('alignment-baseline', 'central')
+		.style('font-family', 'sans-serif')
+		.style('font-size', '16px')
+		.text('Temperature');
+
+
 		
 	/*
 	--------MAKING A LINE CHART----------
