@@ -1,0 +1,67 @@
+body {
+    font: 12px sans-serif;
+}
+
+svg {
+    font: 10px sans-serif;
+}
+
+.container {
+    display: table-cell;
+    vertical-align:top;
+    height: 500px;
+    padding: 10px;
+    border: 0px solid black;
+}
+
+.instructions {
+    color: red;
+}
+
+.optional {
+    color: darkgreen;
+}
+
+.axis line,
+.axis path {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+
+.axis text {
+    fill: black;
+}
+
+fieldset {
+    border-width: 0;
+}
+
+#legend{
+    border: 1px solid black;
+    padding: 10px;
+}
+
+.dot{
+    height: 10px;
+    width: 10px;
+    background-color: #000;
+    border-radius: 50%;
+    display: inline-block;
+    margin: 1px;
+}
+
+.close {
+    display:inline-block;
+    padding:1px 5px;
+    margin:5px;
+    border: 1px solid black;
+    color:#000;
+    background:#fff;
+    font-weight: bold;
+}
+
+.close:hover {
+    background:#ddd;
+    cursor: pointer;
+}
