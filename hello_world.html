@@ -221,7 +221,6 @@ let plot_data = function(data) {
 	but the maximum of only the temperature column.
 	*/
 	
-	console.log(slices);
 	
 	if (!config.plot_temperature) {
 		// yscale should take temperature into account
@@ -247,8 +246,7 @@ let plot_data = function(data) {
 			return obj.id != "Oxygen Electrode"
 		});
 	}
-	
-	console.log(slices);
+
 	
 	
 	// this basically takes the maximum from !all! 4 columns Temperature, oxySat, oxyEle, Salinity.
