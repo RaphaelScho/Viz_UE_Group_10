@@ -1,3 +1,4 @@
+0. Run Viz UE Ex2 Preprocessing.ipynb to process data in case processed data is not yet available in data/
 1. Install node.js
 2. check if node and npm command works: "node -v" in cmd and "npm -v". This will show you the version
 3. install live server: "npm install -g live-server"
