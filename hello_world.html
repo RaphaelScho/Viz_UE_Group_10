@@ -49,6 +49,10 @@ const margin = 40;
 const padding = 5;
 const adj = 100; // play with this to shrink everything at once
 
+
+
+let attributes;
+
 const timeConv = d3.timeParse("%Y-%m");
 
 var config = {
@@ -124,7 +128,7 @@ let plot_data = function(data) {
 			})
 		}
 	});
-	/*console.log(san_pablo_slices);*/
+
 	
 	const south_slices = south.columns.slice(2).map(function(col_name) { // slice(1) is for ignoring the time col
 		return {
@@ -137,7 +141,7 @@ let plot_data = function(data) {
 			})
 		}
 	});
-	/*console.log(south_slices);*/
+
 	
 	const suisun_slices = suisun.columns.slice(2).map(function(col_name) { // slice(1) is for ignoring the time col
 		return {
@@ -150,31 +154,11 @@ let plot_data = function(data) {
 			})
 		}
 	});
-	/*console.log(suisun_slices);*/
 	
-	/* TUTORIAL: Look at console. Inspect the objects.
-		This is the same code, but not grouped by area.
-		Using this object you can plot all data at once.
-		This was used before the data was grouped. You don't need it
-		anymore, probably, but it might be useful.
-		This function is still a little bit magic for me but,
-		do console.log() to understand the output.
-		*/
-	/*const slices = data.columns.slice(2).map(function(col_name) { // slice(1) is for ignoring the time col
-		return {
-			id: col_name,
-			values: data.map(function(row) {
-				return {
-					time: timeConv(row.time),
-					measurement: +row[col_name]
-				}
-			})
-		}
-	});
-	console.log(slices);*/
 	
 	/* Just set slices to the bay that is selected (currently only 1 bay at a time supported)*/
-	var slices = [] /* Per Default show san pablo (checkbox checked by default)*/
+	let slices = [] /* Per Default show san pablo (checkbox checked by default)*/
+	
 	
 	if (config.plot_south){
 	  console.log("South")
@@ -202,6 +186,14 @@ let plot_data = function(data) {
     .style("margin", margin)
     .classed("svg-content", true);
 	}
+
+	
+	/*attributes = {
+		0: "Temperature",
+		1: "Salinity"
+		2: "Oxygen Electrode",
+		3: "Oxygen Saturation"
+	};*/
 	
 	
 	/* 
@@ -228,18 +220,37 @@ let plot_data = function(data) {
 	is selected, but the others are not, the y Axis maximum should not be 1000, 
 	but the maximum of only the temperature column.
 	*/
-	if (config.plot_temperature) {
+	
+	console.log(slices);
+	
+	if (!config.plot_temperature) {
 		// yscale should take temperature into account
+		slices = slices.filter(obj => {
+			return obj.id != "Temperature"
+		});
 	}
-	if (config.plot_salinity) {
+	if (!config.plot_salinity) {
 		// yscale should take salinity into account
+		slices = slices.filter(obj => {
+			return obj.id != "Salinity";
+		});
 	}
-	if (config.plot_oxySat) {
+	if (!config.plot_oxySat) {
 		// yscale should take oxySat into account
+		slices = slices.filter(obj => {
+			return obj.id != "Oxygen Saturation"
+		});
 	}
-	if (config.plot_oxyEle) {
+	if (!config.plot_oxyEle) {
 		// yscale should take oxyEle into account
+		slices = slices.filter(obj => {
+			return obj.id != "Oxygen Electrode"
+		});
 	}
+	
+	console.log(slices);
+	
+	
 	// this basically takes the maximum from !all! 4 columns Temperature, oxySat, oxyEle, Salinity.
 	// it should only take max of activated columns !and! activated datasets.
 	yScale.domain([(0), d3.max(slices, function(slice) {
