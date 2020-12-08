@@ -37,9 +37,9 @@
 	console.log(variable)!!!!!!!!!!!!!!!!!!!!!!!!
 	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!	*/
 	
-/* TUTORIAL: Hello world with d3. */
+/* TUTORIAL: Hello world with d3. 
 d3.select("body").append("span")
-    .text("Hello, world!");
+    .text("Hello, world!"); */
 
 /* TUTORIAL: Adjust these parameters to relocate the plot, make it
 	wider, ..., ESPECIALLY look at adj! */
@@ -54,8 +54,8 @@ const timeConv = d3.timeParse("%Y-%m");
 var config = {
 	plot_south: false,
 	plot_suisun: false,
-	plot_san_pablo: true,
-	plot_temperature: true,
+	plot_san_pablo: false,
+	plot_temperature: false,
 	plot_salinity: false,
 	plot_oxySat: false,
 	plot_oxyEle: false,
@@ -64,7 +64,7 @@ var config = {
 }
 
 /* TUTORIAL: This represents the plot. It acts on the html div that has id (#) plot_area */
-const svg = d3.select("div#plot_area").append("svg")
+var svg = d3.select("div#plot_area").append("svg")
     .attr("preserveAspectRatio", "xMinYMin meet")
     .attr("viewBox", "-"
           + adj + " -"
@@ -97,8 +97,6 @@ let plot_data = function(data) {
 	const grouped = d3.nest()
 		.key(function(d) { return d.Area; })
 		.entries(data);
-	
-	console.log(data);
 
 	grouped.forEach(function(g) {
 		g.values.columns = data.columns;
@@ -110,7 +108,6 @@ let plot_data = function(data) {
 	san_pablo = grouped[0].values;
 	south = grouped[1].values;
 	suisun = grouped[2].values;
-	console.log(san_pablo);
 
 	/* TUTORIAL: Look at console. Inspect the objects.
 		This code gathers from the rows of the data, grouped by area, all the relevant columns.
@@ -127,7 +124,33 @@ let plot_data = function(data) {
 			})
 		}
 	});
-	console.log(san_pablo_slices);
+	/*console.log(san_pablo_slices);*/
+	
+	const south_slices = south.columns.slice(2).map(function(col_name) { // slice(1) is for ignoring the time col
+		return {
+			id: col_name,
+			values: south.map(function(row) {
+				return {
+					time: timeConv(row.time),
+					measurement: +row[col_name]
+				}
+			})
+		}
+	});
+	/*console.log(south_slices);*/
+	
+	const suisun_slices = suisun.columns.slice(2).map(function(col_name) { // slice(1) is for ignoring the time col
+		return {
+			id: col_name,
+			values: suisun.map(function(row) {
+				return {
+					time: timeConv(row.time),
+					measurement: +row[col_name]
+				}
+			})
+		}
+	});
+	/*console.log(suisun_slices);*/
 	
 	/* TUTORIAL: Look at console. Inspect the objects.
 		This is the same code, but not grouped by area.
@@ -137,7 +160,7 @@ let plot_data = function(data) {
 		This function is still a little bit magic for me but,
 		do console.log() to understand the output.
 		*/
-	const slices = data.columns.slice(2).map(function(col_name) { // slice(1) is for ignoring the time col
+	/*const slices = data.columns.slice(2).map(function(col_name) { // slice(1) is for ignoring the time col
 		return {
 			id: col_name,
 			values: data.map(function(row) {
@@ -148,7 +171,37 @@ let plot_data = function(data) {
 			})
 		}
 	});
-	console.log(slices);
+	console.log(slices);*/
+	
+	/* Just set slices to the bay that is selected (currently only 1 bay at a time supported)*/
+	var slices = [] /* Per Default show san pablo (checkbox checked by default)*/
+	
+	if (config.plot_south){
+	  console.log("South")
+	  slices = south_slices
+	}
+	else if (config.plot_suisun){
+	  console.log("Suisun")
+	  slices = suisun_slices
+	}
+	else if (config.plot_san_pablo){
+	  console.log("San Pablo")
+	  slices = san_pablo_slices
+	}
+	else { /* Clear plot if nothing selected */
+	  console.log("Nothing selected")
+	  svg.remove()
+	  svg = d3.select("div#plot_area").append("svg")
+    .attr("preserveAspectRatio", "xMinYMin meet")
+    .attr("viewBox", "-"
+          + adj + " -"
+          + adj + " "
+          + (width + adj *3) + " "
+          + (height + adj*3))
+    .style("padding", padding)
+    .style("margin", margin)
+    .classed("svg-content", true);
+	}
 	
 	
 	/* 
@@ -204,6 +257,19 @@ let plot_data = function(data) {
 		.ticks(d3.timeYear.every(1))
 		.tickFormat(d3.timeFormat('%b %Y'))
 		.scale(xScale);
+	
+	/* redraw Plot instead of drawing over the old one */
+	svg.remove()
+	svg = d3.select("div#plot_area").append("svg")
+    .attr("preserveAspectRatio", "xMinYMin meet")
+    .attr("viewBox", "-"
+          + adj + " -"
+          + adj + " "
+          + (width + adj *3) + " "
+          + (height + adj*3))
+    .style("padding", padding)
+    .style("margin", margin)
+    .classed("svg-content", true);
 	
 	svg.append("g")
 		.attr("class", "axis")
@@ -268,20 +334,6 @@ let plot_data = function(data) {
 		and then append that to the svg.
 	*/
 	
-	/* TUTORIAL: Look at console. Inspect the objects.
-		See which bays the user wants to plot. Only plot the columns
-		the user wants to see from those bays.
-		All these things are a little bit magic for me so i cant explain.
-	*/
-	if (config.plot_south) {
-		
-	}
-	if (config.plot_suisun) {
-		
-	}
-	if (config.plot_san_pablo) {
-		
-	}
 	const line = d3.line()
 		.x(function(d) {
 			return xScale(d.time);
@@ -351,21 +403,48 @@ let handleClick = function(cb) {
 			}
 			break;
 		case "temperature":
-	
+	    if (cb.checked) {
+				config.plot_temperature = true;
+				data.then(plot_data);
+			} else {
+				config.plot_temperature = false;
+				data.then(plot_data);
+			}
 			break;
 		case "oxy_sat":
-	
+	    if (cb.checked) {
+				config.plot_oxySat = true;
+				data.then(plot_data);
+			} else {
+				config.plot_oxySat = false;
+				data.then(plot_data);
+			}
 			break;
 		case "oxy_ele":
-	
+	    if (cb.checked) {
+				config.plot_oxyEle = true;
+				data.then(plot_data);
+			} else {
+				config.plot_oxyEle = false;
+				data.then(plot_data);
+			}
 			break;
 		case "salinity":
-	
+	    if (cb.checked) {
+				config.plot_salinity = true;
+				data.then(plot_data);
+			} else {
+				config.plot_salinity = false;
+				data.then(plot_data);
+			}
 			break;
 		default:
 			console.warn("No specific callback found");
 			break;
 	}
 }
+
+/* Plot data when loading page */
+data.then(plot_data);
 
 </script>
