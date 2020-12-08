@@ -9,49 +9,31 @@
 <!-- d3 version 5 -->
 <script src="https://d3js.org/d3.v5.min.js"></script>
 
-<!-- TODO: in the css make a somewhat nicer style than the default. -->
 <div id = "plotting_settings">
-	<div id = "bay_settings" class = "settings">
-		<label><input type="checkbox" onclick = 'handleClick(this);' name="south">South Bay</label></br>		
-		<label><input type="checkbox" onclick = 'handleClick(this);' name="suisun">Suisun Bay</label></br>	
-		<label><input type="checkbox" onclick = 'handleClick(this);' name="san_pablo">San Pablo Bay</label></br>	
+	<div>
+		<input type="radio" onclick = 'handleClick(this);' name="bay" value="south"><label>South Bay</label><br>		
+		<input type="radio" onclick = 'handleClick(this);' name="bay" value="suisun"><label>Suisun Bay</label><br>	
+		<input type="radio" onclick = 'handleClick(this);' name="bay" value="san_pablo"><label>San Pablo Bay</label><br>	
 	</div>
 	<div id = "time_settings" class = "settings">
-	<!-- TODO: add a time slider here. Look into TODO.txt for examples. -->
 	</div>
 	<div id = "information_settings" class = "settings">
-		<label><input type="checkbox" onclick = 'handleClick(this);' name="temperature">Temperature</label></br>
-		<label><input type="checkbox" onclick = 'handleClick(this);' name="oxy_sat">Oxygen Saturation (%)</label></br>
-		<label><input type="checkbox" onclick = 'handleClick(this);' name="oxy_ele">Oxygen Electrode Output</label></br>
-		<label><input type="checkbox" onclick = 'handleClick(this);' name="salinity">Salinity</label></br>
+		<label><input type="checkbox" onclick = 'handleClick(this);' name="temperature" value="temperature"><text style="color:orange">Temperature</text></label><br>
+		<label><input type="checkbox" onclick = 'handleClick(this);' name="salinity" value="salinity"><text style="color:gray">Salinity</text></label><br>
+		<label><input type="checkbox" onclick = 'handleClick(this);' name="oxy_ele" value="oxy_ele"><text style="color:lightgreen">Oxygen Electrode Output</text></label><br>
+		<label><input type="checkbox" onclick = 'handleClick(this);' name="oxy_sat" value="oxy_sat"><text style="color:green">Oxygen Saturation (%)</text></label><br>
 	</div>
 </div>
 
 <div id = "plot_area">
-<!-- PLOT AREA -->
 </div>
 
 <script>
-
-/* TUTORIAL: The most important javascript command is:
-	console.log(variable)!!!!!!!!!!!!!!!!!!!!!!!!
-	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!	*/
-	
-/* TUTORIAL: Hello world with d3. 
-d3.select("body").append("span")
-    .text("Hello, world!"); */
-
-/* TUTORIAL: Adjust these parameters to relocate the plot, make it
-	wider, ..., ESPECIALLY look at adj! */
 const width = 1000;
 const height = 500;
 const margin = 40;
 const padding = 5;
-const adj = 100; // play with this to shrink everything at once
-
-
-
-let attributes;
+const adj = 100; 
 
 const timeConv = d3.timeParse("%Y-%m");
 
@@ -67,7 +49,6 @@ var config = {
 	date_max: timeConv('2010-01')
 }
 
-/* TUTORIAL: This represents the plot. It acts on the html div that has id (#) plot_area */
 var svg = d3.select("div#plot_area").append("svg")
     .attr("preserveAspectRatio", "xMinYMin meet")
     .attr("viewBox", "-"
@@ -82,22 +63,11 @@ var svg = d3.select("div#plot_area").append("svg")
 /* loading data */
 const data = d3.csv("/data/SFBay_processed_scaled.csv");
 
-/* TUTORIAL: This is the function that prepares data, prepares axes, and plots.
-	Why all together? I couldn't separate it, since d3 works somewhat weirdly.
-	It runs asynchronously and works with promises, so I suggest you do everything in this
-	function. */
+/* This is the function that prepares data, prepares axes, and plots. */
 let plot_data = function(data) {
-
-	/* TUTORIAL: Figure out how to "unplot" data. 
-	(click on the checkboxes twice, the data is plotted again and again
-	and never is the figure cleared.)*/
-	/*
-	
-	------PREPARING DATA--------
-	*/
-	/* TUTORIAL: Look at console. Inspect the objects.
-		This code makes groups from the areas.
-		*/
+  /*
+  ------PREPARING DATA--------
+  */
 	const grouped = d3.nest()
 		.key(function(d) { return d.Area; })
 		.entries(data);
@@ -106,17 +76,10 @@ let plot_data = function(data) {
 		g.values.columns = data.columns;
 	});
 	
-	/* TUTORIAL: Look at console. Inspect the objects.
-		This code assigns the groups to the bays.
-		*/
 	san_pablo = grouped[0].values;
 	south = grouped[1].values;
 	suisun = grouped[2].values;
 
-	/* TUTORIAL: Look at console. Inspect the objects.
-		This code gathers from the rows of the data, grouped by area, all the relevant columns.
-		Hint: look at resulting object. also look at the same code for the whole data.
-		*/
 	const san_pablo_slices = san_pablo.columns.slice(2).map(function(col_name) { // slice(1) is for ignoring the time col
 		return {
 			id: col_name,
@@ -128,7 +91,6 @@ let plot_data = function(data) {
 			})
 		}
 	});
-
 	
 	const south_slices = south.columns.slice(2).map(function(col_name) { // slice(1) is for ignoring the time col
 		return {
@@ -141,7 +103,6 @@ let plot_data = function(data) {
 			})
 		}
 	});
-
 	
 	const suisun_slices = suisun.columns.slice(2).map(function(col_name) { // slice(1) is for ignoring the time col
 		return {
@@ -155,11 +116,8 @@ let plot_data = function(data) {
 		}
 	});
 	
-	
-	/* Just set slices to the bay that is selected (currently only 1 bay at a time supported)*/
-	let slices = [] /* Per Default show san pablo (checkbox checked by default)*/
-	
-	
+	let slices = []
+
 	if (config.plot_south){
 	  console.log("South")
 	  slices = south_slices
@@ -186,15 +144,6 @@ let plot_data = function(data) {
     .style("margin", margin)
     .classed("svg-content", true);
 	}
-
-	
-	/*attributes = {
-		0: "Temperature",
-		1: "Salinity"
-		2: "Oxygen Electrode",
-		3: "Oxygen Saturation"
-	};*/
-	
 	
 	/* 
 	-----------AXES-----------
@@ -202,65 +151,42 @@ let plot_data = function(data) {
 	
 	const xScale = d3.scaleTime().range([0,width]);
 	const yScale = d3.scaleLinear().rangeRound([height, 0]);
-	
-	/* TUTORIAL: Look at console. Inspect the objects.
-		X Axis (time) always takes the same timeframe at the moment. This should be adjustable. See
-		TODO.txt for a d3 example of nice range sliders. This slider should then make its influence here,
-		by calling the startDate and endDate of the config in the onclick function seen farther down.
-		*/
-	xMin = config.date_min; // use this
-	xMax = config.date_max; // use this
+
+	xMin = config.date_min; 
+	xMax = config.date_max; 
 	xScale.domain(d3.extent(data, function(d){ //d3.extent() returns a minimum and maximum value of an array
 		const smth = timeConv(d.time);
 		return timeConv(d.time)
 	}));
 	
-	/* TUTORIAL: Look at console. Inspect the objects.
-	Access the boolean values of the config object, if temperature f.ex.
-	is selected, but the others are not, the y Axis maximum should not be 1000, 
-	but the maximum of only the temperature column.
-	*/
-	
-	
 	if (!config.plot_temperature) {
-		// yscale should take temperature into account
 		slices = slices.filter(obj => {
 			return obj.id != "Temperature"
 		});
 	}
 	if (!config.plot_salinity) {
-		// yscale should take salinity into account
 		slices = slices.filter(obj => {
 			return obj.id != "Salinity";
 		});
 	}
 	if (!config.plot_oxySat) {
-		// yscale should take oxySat into account
 		slices = slices.filter(obj => {
 			return obj.id != "Oxygen Saturation"
 		});
 	}
 	if (!config.plot_oxyEle) {
-		// yscale should take oxyEle into account
 		slices = slices.filter(obj => {
 			return obj.id != "Oxygen Electrode"
 		});
 	}
 
-	
-	
-	// this basically takes the maximum from !all! 4 columns Temperature, oxySat, oxyEle, Salinity.
-	// it should only take max of activated columns !and! activated datasets.
 	yScale.domain([(0), d3.max(slices, function(slice) {
 			return d3.max(slice.values, function(entry) {
 				return entry.measurement + 0.3; // add 30% to maximum of maximums of slices, aesthetic reasons
-			
 			});
-			
 		})
 	]);
 	const yAxis = d3.axisLeft()
-		//.ticks((slices[0].values).length)
 		.scale(yScale);
 	const xAxis = d3.axisBottom()
 		.ticks(d3.timeYear.every(1))
@@ -335,14 +261,6 @@ let plot_data = function(data) {
 	--------MAKING A LINE CHART----------
 	*/
 	
-	
-	// LINE
-	/*
-		Lines are essentially d3.paths() that connect a bunch of (x, y) coordinates on a 2D plane.
-		To construct a line you need to tell it where to find its x and y coordinates
-		and then append that to the svg.
-	*/
-	
 	const line = d3.line()
 		.x(function(d) {
 			return xScale(d.time);
@@ -359,6 +277,9 @@ let plot_data = function(data) {
 		.data(slices)
 		.enter()
 		.append("g");
+
+  console.log(lines["_groups"])
+  console.log(lines["_groups"][0][0]["__data__"]["id"])
 
 	lines.append("path")
 		.attr("class", ids)
@@ -378,15 +299,13 @@ let plot_data = function(data) {
 
 }
 
-/* TUTORIAL: Here clicks are handled. You can register the callback in the html (see onclick).
-	The html attributes can be accessed by "."
-	For now, everytime the user changes the configuration, the data is plotted anew. */
 let handleClick = function(cb) {
-	switch(cb.name) {
+	switch(cb.value) {
 		case "south":
 			if (cb.checked) {
-				
 				config.plot_south = true;
+				config.plot_suisun = false;
+				config.plot_san_pablo = false;
 				data.then(plot_data);
 			} else {
 				config.plot_south = false;
@@ -396,6 +315,8 @@ let handleClick = function(cb) {
 		case "suisun":
 			if (cb.checked) {
 				config.plot_suisun = true;
+				config.plot_san_pablo = false;
+				config.plot_south = false;
 				data.then(plot_data);
 			} else {
 				config.plot_suisun = false;
@@ -405,6 +326,8 @@ let handleClick = function(cb) {
 		case "san_pablo":
 			if (cb.checked) {
 				config.plot_san_pablo = true;
+				config.plot_south = false;
+				config.plot_suisun = false;
 				data.then(plot_data);
 			} else {
 				config.plot_san_pablo = false;
