@@ -12,9 +12,9 @@
 <!-- TODO: in the css make a somewhat nicer style than the default. -->
 <div id = "plotting_settings">
 	<div id = "bay_settings" class = "settings">
-		<label><input type="checkbox" onclick = 'handleClick(this);' name="south">South Bay</label></br>		
-		<label><input type="checkbox" onclick = 'handleClick(this);' name="suisun">Suisun Bay</label></br>	
-		<label><input type="checkbox" onclick = 'handleClick(this);' name="san_pablo">San Pablo Bay</label></br>	
+		<label><input type="checkbox" onclick = 'handleClick(this);' name="south">South Bay</label></br>
+		<label><input type="checkbox" onclick = 'handleClick(this);' name="suisun">Suisun Bay</label></br>
+		<label><input type="checkbox" onclick = 'handleClick(this);' name="san_pablo">San Pablo Bay</label></br>
 	</div>
 	<div id = "time_settings" class = "settings">
 	<!-- TODO: add a time slider here. Look into TODO.txt for examples. -->
@@ -36,7 +36,7 @@
 /* TUTORIAL: The most important javascript command is:
 	console.log(variable)!!!!!!!!!!!!!!!!!!!!!!!!
 	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!	*/
-	
+
 /* TUTORIAL: Hello world with d3. */
 d3.select("body").append("span")
     .text("Hello, world!");
@@ -84,11 +84,11 @@ const data = d3.csv("/data/SFBay_processed_scaled.csv");
 	function. */
 let plot_data = function(data) {
 
-	/* TUTORIAL: Figure out how to "unplot" data. 
+	/* TUTORIAL: Figure out how to "unplot" data.
 	(click on the checkboxes twice, the data is plotted again and again
 	and never is the figure cleared.)*/
 	/*
-	
+
 	------PREPARING DATA--------
 	*/
 	/* TUTORIAL: Look at console. Inspect the objects.
@@ -97,13 +97,13 @@ let plot_data = function(data) {
 	const grouped = d3.nest()
 		.key(function(d) { return d.Area; })
 		.entries(data);
-	
+
 	console.log(data);
 
 	grouped.forEach(function(g) {
 		g.values.columns = data.columns;
 	});
-	
+
 	/* TUTORIAL: Look at console. Inspect the objects.
 		This code assigns the groups to the bays.
 		*/
@@ -128,7 +128,7 @@ let plot_data = function(data) {
 		}
 	});
 	console.log(san_pablo_slices);
-	
+
 	/* TUTORIAL: Look at console. Inspect the objects.
 		This is the same code, but not grouped by area.
 		Using this object you can plot all data at once.
@@ -149,15 +149,15 @@ let plot_data = function(data) {
 		}
 	});
 	console.log(slices);
-	
-	
-	/* 
+
+
+	/*
 	-----------AXES-----------
 	*/
-	
+
 	const xScale = d3.scaleTime().range([0,width]);
 	const yScale = d3.scaleLinear().rangeRound([height, 0]);
-	
+
 	/* TUTORIAL: Look at console. Inspect the objects.
 		X Axis (time) always takes the same timeframe at the moment. This should be adjustable. See
 		TODO.txt for a d3 example of nice range sliders. This slider should then make its influence here,
@@ -169,10 +169,10 @@ let plot_data = function(data) {
 		const smth = timeConv(d.time);
 		return timeConv(d.time)
 	}));
-	
+
 	/* TUTORIAL: Look at console. Inspect the objects.
 	Access the boolean values of the config object, if temperature f.ex.
-	is selected, but the others are not, the y Axis maximum should not be 1000, 
+	is selected, but the others are not, the y Axis maximum should not be 1000,
 	but the maximum of only the temperature column.
 	*/
 	if (config.plot_temperature) {
@@ -192,9 +192,9 @@ let plot_data = function(data) {
 	yScale.domain([(0), d3.max(slices, function(slice) {
 			return d3.max(slice.values, function(entry) {
 				return entry.measurement + 0.3; // add 30% to maximum of maximums of slices, aesthetic reasons
-			
+
 			});
-			
+
 		})
 	]);
 	const yAxis = d3.axisLeft()
@@ -204,7 +204,7 @@ let plot_data = function(data) {
 		.ticks(d3.timeYear.every(1))
 		.tickFormat(d3.timeFormat('%b %Y'))
 		.scale(xScale);
-	
+
 	svg.append("g")
 		.attr("class", "axis")
 		.attr("transform", "translate(0," + height + ")")
@@ -236,7 +236,7 @@ let plot_data = function(data) {
 		.attr('stroke-width', 2)
 		.attr('d', d3.line()
 			.x((d) => xScale(d[0]))
-			.y((d) => yScale(d[1]))); 
+			.y((d) => yScale(d[1])));
 
 	svg.append('text')
 		.attr('x', xScale(100))
@@ -255,32 +255,32 @@ let plot_data = function(data) {
 		.text('Temperature');
 
 
-		
+
 	/*
 	--------MAKING A LINE CHART----------
 	*/
-	
-	
+
+
 	// LINE
 	/*
 		Lines are essentially d3.paths() that connect a bunch of (x, y) coordinates on a 2D plane.
 		To construct a line you need to tell it where to find its x and y coordinates
 		and then append that to the svg.
 	*/
-	
+
 	/* TUTORIAL: Look at console. Inspect the objects.
 		See which bays the user wants to plot. Only plot the columns
 		the user wants to see from those bays.
 		All these things are a little bit magic for me so i cant explain.
 	*/
 	if (config.plot_south) {
-		
+
 	}
 	if (config.plot_suisun) {
-		
+
 	}
 	if (config.plot_san_pablo) {
-		
+
 	}
 	const line = d3.line()
 		.x(function(d) {
@@ -289,7 +289,7 @@ let plot_data = function(data) {
 		.y(function(d) {
 			return yScale(d.measurement);
 		});
-		
+
 	let id = 0;
 	const ids = function() {
 		return "line-"+id++; // generate numbered ids
@@ -302,7 +302,7 @@ let plot_data = function(data) {
 	lines.append("path")
 		.attr("class", ids)
 		.attr("d", function(d) { return line(d.values); });
-		
+
 	lines.append("text")
 		.attr("class","series_label")
 		.datum(function(d) {
@@ -310,7 +310,7 @@ let plot_data = function(data) {
 				id: d.id,
 				value: d.values[d.values.length - 1]}; })
 		.attr("transform", function(d) {
-				return "translate(" + (xScale(d.value.time) + 10)  
+				return "translate(" + (xScale(d.value.time) + 10)
 				+ "," + (yScale(d.value.measurement) + 5 ) + ")";})
 		.attr("x", 5)
 		.text(function(d) { return d.id; });
@@ -324,7 +324,7 @@ let handleClick = function(cb) {
 	switch(cb.name) {
 		case "south":
 			if (cb.checked) {
-				
+
 				config.plot_south = true;
 				data.then(plot_data);
 			} else {
@@ -351,16 +351,16 @@ let handleClick = function(cb) {
 			}
 			break;
 		case "temperature":
-	
+
 			break;
 		case "oxy_sat":
-	
+
 			break;
 		case "oxy_ele":
-	
+
 			break;
 		case "salinity":
-	
+
 			break;
 		default:
 			console.warn("No specific callback found");
