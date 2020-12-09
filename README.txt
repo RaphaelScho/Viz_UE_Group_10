@@ -1,11 +1,4 @@
 Follow these steps to generate the visualization dashboard
-
-A) Preprocessing the data - NOT NECESSARY as we decided to already provide you with the processed data in the data/ folder
-  1. Create a folder "data" (without quotes) in the root directory (next to the Preprocessing.ipynb notebook)
-  2. Move the original data "SFBay.csv" into the data folder
-  3. Run the provided jupyter notebook (Preprocessing.ipynb) to preprocess the data
-
-B) Showing the dashboard
   1. Install node.js and npm (if not already installed)
   2. install live server: "npm install -g live-server" in your command line (if not already installed)
   3. Go to project's root dir (where the notebook, dashboard.html, css files and data folder are)
