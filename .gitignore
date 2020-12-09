@@ -130,3 +130,5 @@ dmypy.json
 
 # User defined
 data/
+.Rhistory
+.idea/
